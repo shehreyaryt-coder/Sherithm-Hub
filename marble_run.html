@@ -284,7 +284,12 @@
       
       document.getElementById('gameOver').style.display = 'flex';
     }
-    document.getElementById('restartBtn').onclick = ()=>location.reload();
+    document.getElementById('restartBtn').onclick = ()=>{
+  // 1. Open SmartLink in a new tab
+  window.open('https://otieu.com/4/10332057', '_blank'); 
+  // 2. Reload the game in the current tab
+  location.reload(); 
+};
 
     // =====================
     // POWER-UP UPDATES

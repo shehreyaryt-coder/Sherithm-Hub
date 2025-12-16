@@ -1,0 +1,277 @@
+/* CSS STYLING: VIBRANT AQUA & LIME - Fully Responsive */
+
+/* Color Variables */
+:root {
+    --color-primary: #1DE9B6; /* Bright Aqua/Mint - Main Focus Color */
+    --color-secondary: #C6FF00; /* Vibrant Lime Green - Accent/Hover */
+    --color-background: #FFFFFF; /* Pure White - Clean and Fresh */
+    --color-text: #263238; /* Dark Slate - High readability */
+    --color-card-bg: #F0FDF8; /* Off-White/Light Mint Card */
+    --color-border: #B2DFDB; /* Soft Teal Border */
+}
+
+/* GLOBAL RESET & TYPOGRAPHY */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    line-height: 1.6;
+    overflow-x: hidden; /* Prevents horizontal scrolling on mobile */
+}
+
+.main-content, .featured-blocks {
+    padding: 40px 5%;
+}
+
+h1, h2, h3 { color: var(--color-text); }
+
+/* LINKS & CTAS */
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: var(--color-secondary);
+}
+
+.btn {
+    display: inline-block;
+    padding: 14px 35px;
+    margin-top: 15px;
+    border-radius: 40px; /* Highly rounded for fun and modern feel */
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+    font-size: 1.1em;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-text); /* Dark text on bright background */
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: var(--color-secondary);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    transform: translateY(-3px);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-primary);
+    color: var(--color-text);
+}
+
+/* HEADER & NAVIGATION (Mobile-First) */
+.main-header {
+    background: var(--color-background);
+    padding: 15px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 4px solid var(--color-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.main-header .logo h1 a {
+    font-size: 1.8em;
+    font-weight: 900;
+    color: var(--color-primary);
+}
+
+.main-nav ul {
+    list-style: none;
+    display: flex;
+}
+
+.main-nav ul li {
+    margin-left: 30px;
+}
+
+.main-nav ul li a {
+    font-weight: 600;
+    text-transform: none;
+    font-size: 1.05em;
+    color: var(--color-text);
+}
+
+.main-nav ul li a:hover {
+    color: var(--color-secondary);
+}
+
+/* HERO SECTION (Mobile Layout) */
+.hero-section {
+    display: flex;
+    flex-direction: column; /* Stack vertically on mobile */
+    align-items: center;
+    padding: 60px 5%;
+    background-color: #E0F7FA; /* Very light cool blue */
+    text-align: center;
+}
+
+.hero-content {
+    max-width: 100%;
+}
+
+.hero-content h2 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    color: var(--color-primary);
+}
+
+.hero-visual {
+    width: 90%;
+    margin-top: 30px;
+}
+
+.hero-visual img {
+    width: 100%;
+    height: auto;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* AD BANNER (Non-intrusive style) */
+.ad-banner {
+    text-align: center;
+    padding: 15px;
+    background-color: var(--color-card-bg);
+    margin: 20px 0;
+    border-top: 2px solid var(--color-border);
+    border-bottom: 2px solid var(--color-border);
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* FEATURED BLOCKS */
+.featured-blocks {
+    display: grid;
+    grid-template-columns: 1fr; /* Single column on mobile */
+    gap: 25px;
+}
+
+.feature-card {
+    background-color: var(--color-card-bg);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    border-left: 6px solid var(--color-secondary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.feature-card h3 {
+    color: var(--color-text);
+    margin-bottom: 10px;
+    font-size: 1.6em;
+}
+
+/* VIDEO/DOWNLOAD GRID */
+.page-title {
+    margin-bottom: 40px;
+    color: var(--color-primary);
+    text-align: center;
+    font-size: 2.8em;
+}
+
+.video-grid, .download-list {
+    display: grid;
+    grid-template-columns: 1fr; /* Single column on mobile */
+    gap: 30px;
+}
+
+.video-card, .download-item {
+    background-color: var(--color-card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--color-border);
+}
+
+.video-embed {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+}
+
+.video-embed iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* FOOTER */
+.main-footer {
+    background: var(--color-card-bg);
+    text-align: center;
+    padding: 30px;
+    font-size: 0.9em;
+    border-top: 3px solid var(--color-border);
+    color: #666;
+}
+
+.main-footer .footer-links a {
+    margin: 0 10px;
+    color: #666;
+}
+
+/* MEDIA QUERY: DESKTOP OPTIMIZATION */
+@media (min-width: 768px) {
+    
+    /* HEADER */
+    .main-header {
+        padding: 20px 5%;
+    }
+
+    .main-header .logo h1 a {
+        font-size: 2.5em;
+    }
+
+    /* HERO SECTION */
+    .hero-section {
+        flex-direction: row; /* Layout horizontally on desktop */
+        text-align: left;
+        padding: 80px 5%;
+    }
+
+    .hero-content {
+        max-width: 45%;
+    }
+
+    .hero-content h2 {
+        font-size: 4em;
+    }
+
+    .hero-visual {
+        width: 45%;
+        margin-top: 0;
+    }
+    
+    /* GRIDS */
+    .featured-blocks {
+        grid-template-columns: repeat(3, 1fr); /* 3 columns for desktop */
+    }
+
+    .video-grid, .download-list {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* 2-3 columns */
+    }
+}

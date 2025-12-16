@@ -1,53 +1,89 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sherithm Online Hub| Videos, Wallpapers & Games</title>
-  <meta name="description" content="Watch marble videos, download marble wallpapers, explore games and buy marbles." />
-  <style>
-    body { font-family: Arial, sans-serif; margin: 0; background:#f5f5f5; }
-    header { background:#1f2937; color:#fff; padding:20px; text-align:center; }
-    nav a { color:#fff; margin:0 10px; text-decoration:none; font-weight:bold; }
-    section { padding:20px; }
-    .card { background:#fff; padding:15px; margin:10px 0; border-radius:8px; }
-    .btn { display:inline-block; padding:10px 15px; background:#2563eb; color:#fff; border-radius:6px; text-decoration:none; }
-    footer { background:#111827; color:#ccc; text-align:center; padding:15px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Marble Run Hub | Gravity-Defying Fun</title>
+    <link rel="stylesheet" href="/style.css">
 </head>
-<body><header>
-  <h1>Marble Hub</h1>
-  <p>Videos • Wallpapers • Games • Buy Marbles</p>
-  <nav>
-    <a href="#videos">Videos</a>
-    <a href="#wallpapers">Wallpapers</a>
-    <a href="#games">Games</a>
-    <a href="#buy">Buy</a>
-  </nav>
-</header><section id="videos">
-  <h2>🎥 Marble Videos</h2>
-  <div class="card">
-    <iframe width="100%" height="315" src="https://www.youtube.com/embed/YOUR_VIDEO_ID" allowfullscreen></iframe>
-    <p>Watch amazing marble videos and races.</p>
-  </div>
-</section><section id="wallpapers">
-  <h2>🖼️ Marble Wallpapers</h2>
-  <div class="card">
-    <p>Download free marble wallpapers.</p>
-    <a class="btn" href="https://otieu.com/4/10332061">Download Wallpapers</a>
-  </div>
-</section><section id="games">
-  <h2>🎮 Marble Games</h2>
-  <div class="card">
-    <p>Play simple marble games online.</p>
-    <a class="btn" href="https://otieu.com/4/10332061">Play Games</a>
-  </div>
-</section><section id="buy">
-  <h2>🛒 Buy Marbles</h2>
-  <div class="card">
-    <p>Buy marbles used in our videos.</p>
-    <a class="btn" href="https://www.amazon.com" target="_blank">Buy on Amazon</a>
-  </div>
-</section><footer>
-  <p>© 2025 Marble Hub | Privacy Policy</p>
-</footer></body>
+<body>
+    
+    <header class="main-header">
+        <div class="logo">
+            <h1><a href="index.html">MARBLE PATH</a></h1>
+        </div>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="videos.html">Video Gallery</a></li>
+                <li><a href="game.html">Play the Game</a></li>
+                <li><a href="downloads.html">Free Downloads</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        
+        <section class="hero-section">
+            <div class="hero-content">
+                <h2>Witness the Ultimate Marble Adventure!</h2>
+                <p>Dive into a world of speed, spectacle, and ingenious engineering. The most beautiful marble runs, games, and blueprints are right here!</p>
+                <a href="videos.html" class="btn btn-primary">Start Watching the Fun!</a>
+            </div>
+            <div class="hero-visual">
+                <img src="https://via.placeholder.com/600x400/1DE9B6/263238?text=Vibrant+Marble+Run+Feature" alt="Vibrant Featured Marble Run"> 
+            </div>
+        </section>
+
+        <section class="ad-banner top-banner">
+            <p>[Advertisements help keep this site FREE for everyone to enjoy! Thank you for supporting the streams.]</p>
+        </section>
+
+        <section class="featured-blocks">
+            
+            <div class="feature-card game-card">
+                <h3>Challenge Accepted!</h3>
+                <p>Race against the clock and climb the leaderboards today.</p>
+                <a href="game.html" class="btn btn-secondary">Play the Marble Game</a>
+            </div>
+            
+            <div class="feature-card downloads-card">
+                <h3>Cool Freebies!</h3>
+                <p>Grab high-quality wallpapers and schematics for your room.</p>
+                <a href="downloads.html" class="btn btn-secondary">Get My Free Downloads</a>
+            </div>
+
+            <div class="feature-card community-card">
+                <h3>Support the Fun!</h3>
+                <p>Your support directly fuels the discovery of new, amazing runs.</p>
+                <a href="https://otieu.com/4/10332061" class="btn btn-primary">Say Thanks! (Support Us)</a>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="main-footer">
+        <p>&copy; 2025 Marble Path. All Rights Reserved. | Created for Fun and Creativity.</p>
+        <div class="footer-links">
+            <a href="https://otieu.com/4/10332061">Privacy Policy</a> | 
+            <a href="https://otieu.com/4/10332061">Terms of Use</a> |
+            <a href="https://otieu.com/4/10332061">Ad Disclosure</a>
+        </div>
+    </footer>
+    
+    <script>
+    // 1. Get your Monetag SmartLink and paste it here
+    const smartLink = "https://otieu.com/4/10332061"; 
+
+    function monetizeAndNavigate(targetUrl) {
+        // Open the SmartLink in a new, small window (pop-under effect)
+        window.open(smartLink, 'adwindow', 'width=100,height=100');
+        
+        // Navigate the current window to the desired page after a small delay
+        setTimeout(() => {
+            window.location.href = targetUrl;
+        }, 100); 
+    }
+</script>
+
+    </body>
 </html>

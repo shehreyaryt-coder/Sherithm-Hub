@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marble Sky Run – 3D Game</title>
+  <style>
+    body { margin:0; overflow:hidden; background:#000; font-family:Arial, sans-serif; }
+    #hud {
+      position:fixed; top:10px; left:50%; transform:translateX(-50%);
+      color:#fff; background:rgba(0,0,0,0.45);
+      padding:8px 14px; border-radius:10px; font-size:14px;
+      min-width: 250px; text-align: center;
+    }
+    #scoreDisplay { font-weight: bold; }
+    #gameOver {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,0.9); color:#fff;
+      align-items:center; justify-content:center; flex-direction:column;
+      z-index:10;
+    }
+    #gameOver h1 { margin:0 0 10px; color: #ff3333; }
+    #gameOver p { margin: 5px 0; }
+    #restartBtn {
+      padding:12px 20px; border:none; border-radius:10px;
+      background:#2563eb; color:#fff; font-size:16px; margin-top: 15px;
+      cursor: pointer;
+    }
+    #powerUpStatus {
+      position: fixed; bottom: 20px; left: 20px;
+      color: #fff; background: rgba(0,0,0,0.6);
+      padding: 10px; border-radius: 8px; font-size: 14px;
+      display: flex; gap: 10px;
+    }
+    .powerUpIndicator {
+      padding: 5px 10px; border-radius: 5px;
+      background: #444;
+    }
+    .powerUpActive {
+      background: #4caf50; /* Green for active */
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    Distance: <span id="dist">0</span> m | Coins: <span id="coins">0</span> | High Score: <span id="highScore">0</span> m
+  </div>
+
+  <div id="powerUpStatus">
+    <span id="shieldIndicator" class="powerUpIndicator">🛡️ Shield: 0s</span>
+    <span id="magnetIndicator" class="powerUpIndicator">🪙 Magnet: 0s</span>
+  </div>
+  
+  <div id="gameOver">
+    <h1>Game Over</h1>
+    <p>Distance: <span id="finalDist">0</span> m</p>
+    <p>Coins Collected: <span id="finalCoins">0</span></p>
+    <p id="newHighScoreMsg" style="color: #ffcc00; display: none;">🎉 **NEW HIGH SCORE!** 🎉</p>
+    <button id="restartBtn">Restart</button>
+  </div>
+  
+  <audio id="sound-crash" src="/marble run music /crash groundd.mp3" preload="auto"></audio>
+  <audio id="sound-coin" src="/marble run music /coin collectt.mp3" preload="auto"></audio>
+  <audio id="sound-gameover" src="/marble run music /SUPER MARIO - game over - sound effect.m4a" preload="auto"></audio>
+  <audio id="sound-rolling" src="Ball Rolling.m4a" preload="auto" loop></audio>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+  <script>
+    // =====================
+    // CORE SETUP
+    // =====================
+    let scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x87ceeb, 10, 80);
+    scene.background = new THREE.Color(0x87ceeb);
+
+    let camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 500);
+    let renderer = new THREE.WebGLRenderer({ antialias:true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1));
+    let dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+    dirLight.position.set(5,10,7);
+    scene.add(dirLight);
+
+    // =====================
+    // GAME STATE
+    // =====================
+    let gameRunning = true;
+    let distance = 0;
+    let coins = 0;
+    let speed = 0.15;
+    let maxSpeed = 0.45; // Increased max speed for more challenge
+    let speedIncrement = 0.0005;
+    let moveX = 0;
+    let highScore = localStorage.getItem('marbleHighScore') || 0;
+    document.getElementById('highScore').innerText = highScore;
+
+    // Power-Up State
+    let isShieldActive = false;
+    let isMagnetActive = false;
+    let shieldDuration = 0;
+    let magnetDuration = 0;
+    const POWERUP_MAX_TIME = 8; // seconds
+
+    // =====================
+    // AUDIO SETUP
+    // =====================
+    const soundCrash = document.getElementById('sound-crash');
+    const soundCoin = document.getElementById('sound-coin');
+    const soundGameOver = document.getElementById('sound-gameover');
+    const soundRolling = document.getElementById('sound-rolling');
+
+    function playSound(audioElement) {
+      audioElement.currentTime = 0;
+      audioElement.play().catch(e => console.log("Audio play error:", e));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        soundRolling.volume = 0.4;
+        soundRolling.play().catch(e => {});
+    });
+    window.addEventListener('mousemove', () => {
+        if (soundRolling.paused) {
+            soundRolling.play().catch(e => {});
+        }
+    }, { once: true });
+
+
+    // =====================
+    // MARBLE & PARTICLES (VFX)
+    // =====================
+    let marble = new THREE.Mesh(
+      new THREE.SphereGeometry(0.5, 32, 32),
+      new THREE.MeshStandardMaterial({ color:0x2563eb, metalness:0.4, roughness:0.3 })
+    );
+    marble.position.set(0, 1, 0);
+    scene.add(marble);
+    
+    // Coin particle system setup (simple example)
+    let coinParticles = new THREE.Group();
+    scene.add(coinParticles);
+
+    function triggerCoinEffect(position) {
+        for (let i = 0; i < 5; i++) {
+            let p = new THREE.Mesh(
+                new THREE.SphereGeometry(0.05, 8, 8),
+                new THREE.MeshBasicMaterial({ color: 0xffd700 })
+            );
+            p.position.copy(position);
+            p.velocity = new THREE.Vector3(
+                (Math.random() - 0.5) * 0.1, // x
+                Math.random() * 0.15 + 0.05, // y
+                (Math.random() - 0.5) * 0.1 // z
+            );
+            p.lifetime = 20; // frames
+            coinParticles.add(p);
+        }
+    }
+
+    // =====================
+    // CAMERA FOLLOW
+    // =====================
+    camera.position.set(0, 4, 8);
+    let cameraShakeIntensity = 0;
+
+    // =====================
+    // TRACK
+    // =====================
+    let trackSegments = [];
+    function createSegment(z){
+      let seg = new THREE.Mesh(
+        new THREE.BoxGeometry(6, 0.5, 12),
+        new THREE.MeshStandardMaterial({ color:0x8b5a2b })
+      );
+      seg.position.set(0, 0, z);
+      scene.add(seg);
+      trackSegments.push(seg);
+    }
+    for(let i=0;i<12;i++) createSegment(-i*12);
+
+    // =====================
+    // OBSTACLES (Static and Moving)
+    // =====================
+    let obstacles = [];
+    let movingObstacle = null;
+
+    // Static Obstacle
+    function createObstacle(z){
+      let o = new THREE.Mesh(
+        new THREE.BoxGeometry(1,1,1),
+        new THREE.MeshStandardMaterial({ color:0xff3333 })
+      );
+      o.position.set((Math.random()*4)-2, 1, z);
+      scene.add(o);
+      obstacles.push(o);
+    }
+    for(let i=1;i<=10;i++) createObstacle(-i*18);
+
+    // Moving Obstacle (Added to the main obstacle array for collision check)
+    function createMovingObstacle(z) {
+        let o = new THREE.Mesh(
+            new THREE.BoxGeometry(1, 1, 1),
+            new THREE.MeshStandardMaterial({ color: 0xcc00cc }) // Distinct color
+        );
+        o.position.set(-2.5, 1, z);
+        o.isMoving = true;
+        o.moveDirection = 1; // 1 for right, -1 for left
+        o.moveSpeed = 0.05;
+        scene.add(o);
+        obstacles.push(o);
+        return o;
+    }
+    movingObstacle = createMovingObstacle(-100);
+
+    // =====================
+    // COLLECTIBLES (Coins & Power-Ups)
+    // =====================
+    let coinObjects = [];
+    let powerUpObjects = [];
+
+    function createCoin(z){
+      let c = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.3, 0.3, 0.1, 32),
+        new THREE.MeshStandardMaterial({ color:0xffd700 })
+      );
+      c.rotation.x = Math.PI/2;
+      c.position.set((Math.random()*4)-2,1,z);
+      scene.add(c);
+      coinObjects.push(c);
+    }
+    for(let i=1;i<=10;i++) createCoin(-i*15);
+
+    function createPowerUp(z, type) {
+        let color = type === 'shield' ? 0x00ffff : 0xffa500;
+        let shape = new THREE.Mesh(
+            new THREE.TorusGeometry(0.3, 0.1, 16, 100),
+            new THREE.MeshStandardMaterial({ color: color })
+        );
+        shape.position.set((Math.random()*4)-2, 1, z);
+        shape.type = type;
+        scene.add(shape);
+        powerUpObjects.push(shape);
+    }
+    // Add two initial power-ups
+    createPowerUp(-50, 'shield');
+    createPowerUp(-120, 'magnet');
+
+    // =====================
+    // INPUT
+    // =====================
+    window.addEventListener('mousemove', e=>{
+      moveX = (e.clientX / window.innerWidth - 0.5) * 2;
+    });
+    window.addEventListener('touchmove', e=>{
+      moveX = (e.touches[0].clientX / window.innerWidth - 0.5) * 2;
+    },{ passive:true });
+
+    // =====================
+    // GAME OVER & SCORE
+    // =====================
+    function endGame(){
+      if(!gameRunning) return;
+      gameRunning = false;
+
+      // STOP BACKGROUND SOUND
+      soundRolling.pause();
+
+      // Check and save high score
+      let isNewHighScore = false;
+      if (distance > highScore) {
+          localStorage.setItem('marbleHighScore', distance);
+          isNewHighScore = true;
+      }
+
+      // Update Game Over screen
+      document.getElementById('finalDist').innerText = distance;
+      document.getElementById('finalCoins').innerText = coins;
+      document.getElementById('newHighScoreMsg').style.display = isNewHighScore ? 'block' : 'none';
+
+      // Play sounds
+      playSound(soundGameOver);
+      
+      document.getElementById('gameOver').style.display = 'flex';
+    }
+    document.getElementById('restartBtn').onclick = ()=>location.reload();
+
+    // =====================
+    // POWER-UP UPDATES
+    // =====================
+    function updatePowerUpState(delta) {
+        // Shield countdown
+        if (shieldDuration > 0) {
+            shieldDuration -= delta;
+            isShieldActive = true;
+            document.getElementById('shieldIndicator').classList.add('powerUpActive');
+        } else {
+            shieldDuration = 0;
+            isShieldActive = false;
+            document.getElementById('shieldIndicator').classList.remove('powerUpActive');
+        }
+
+        // Magnet countdown
+        if (magnetDuration > 0) {
+            magnetDuration -= delta;
+            isMagnetActive = true;
+            document.getElementById('magnetIndicator').classList.add('powerUpActive');
+        } else {
+            magnetDuration = 0;
+            isMagnetActive = false;
+            document.getElementById('magnetIndicator').classList.remove('powerUpActive');
+        }
+
+        // Update HUD indicators
+        document.getElementById('shieldIndicator').innerText = `🛡️ Shield: ${shieldDuration > 0 ? shieldDuration.toFixed(1) + 's' : '0s'}`;
+        document.getElementById('magnetIndicator').innerText = `🪙 Magnet: ${magnetDuration > 0 ? magnetDuration.toFixed(1) + 's' : '0s'}`;
+    }
+
+    // =====================
+    // ANIMATE LOOP
+    // =====================
+    let lastTime = 0;
+
+    function animate(currentTime){
+      requestAnimationFrame(animate);
+      
+      const delta = (currentTime - lastTime) / 1000 || 0;
+      lastTime = currentTime;
+
+      if(!gameRunning) {
+        // Only render the scene to show the game over state
+        renderer.render(scene, camera);
+        return;
+      }
+
+      // --- GAME LOGIC UPDATES (RUNNING ONLY) ---
+
+      updatePowerUpState(delta);
+
+      // speed increase
+      if(speed < maxSpeed) speed += speedIncrement;
+
+      // marble movement (clamped)
+      marble.position.x += moveX * 0.2;
+      marble.position.x = Math.max(-2.3, Math.min(2.3, marble.position.x));
+
+      // forward motion
+      marble.position.z -= speed;
+
+      // Camera follow and shake
+      camera.position.z = marble.position.z + 8;
+      camera.lookAt(marble.position.x, 1, marble.position.z - 10);
+      if (cameraShakeIntensity > 0) {
+          camera.position.x += Math.random() * cameraShakeIntensity * 0.1;
+          camera.position.y += Math.random() * cameraShakeIntensity * 0.1;
+          cameraShakeIntensity *= 0.95; // Dampen shake
+      }
+
+      // distance counter
+      distance++;
+      document.getElementById('dist').innerText = distance;
+      document.getElementById('highScore').innerText = Math.max(distance, highScore); // Display max of current or saved score
+
+      // recycle track
+      trackSegments.forEach(seg=>{
+        if(seg.position.z > marble.position.z + 6){ seg.position.z -= 144; }
+      });
+
+      // --- MOVING OBSTACLE LOGIC ---
+      if (movingObstacle.isMoving) {
+        movingObstacle.position.x += movingObstacle.moveDirection * movingObstacle.moveSpeed;
+        // Bounce off edges
+        if (movingObstacle.position.x > 2.5) { movingObstacle.moveDirection = -1; }
+        if (movingObstacle.position.x < -2.5) { movingObstacle.moveDirection = 1; }
+      }
+      
+      // --- OBSTACLES + COLLISION ---
+      obstacles.forEach(o=>{
+        if(o.position.z > marble.position.z + 6){ 
+            o.position.z -= 180; 
+            // Reuse static obstacles far away
+            if (!o.isMoving) { 
+                o.position.x = (Math.random()*4)-2; 
+            } else {
+                // Move moving obstacle further away
+                o.position.x = -2.5; // Reset starting position
+                o.moveDirection = 1; 
+            }
+        }
+        
+        // Check collision
+        if(Math.abs(o.position.z - marble.position.z)<1 && Math.abs(o.position.x - marble.position.x)<0.9){ 
+            if (isShieldActive) {
+                // SHIELD HIT: absorb damage
+                isShieldActive = false;
+                shieldDuration = 0;
+                playSound(soundCrash);
+                cameraShakeIntensity = 1.0;
+                o.position.z -= 180; // Push obstacle back
+            } else {
+                // NO SHIELD: Game Over
+                playSound(soundCrash);
+                endGame(); 
+            }
+        }
+      });
+
+      // --- POWER-UP COLLECTION ---
+      powerUpObjects.forEach((p, index) => {
+        if (!p) return;
+        
+        // Recycle power-up
+        if (p.position.z > marble.position.z + 6){ 
+            p.position.z -= 180; 
+            p.position.x = (Math.random()*4)-2; 
+        }
+
+        // Collection check
+        if(Math.abs(p.position.z - marble.position.z)<1 && Math.abs(p.position.x - marble.position.x)<0.8){
+            // Apply Power-up effect
+            if (p.type === 'shield') {
+                shieldDuration = POWERUP_MAX_TIME;
+            } else if (p.type === 'magnet') {
+                magnetDuration = POWERUP_MAX_TIME;
+            }
+            playSound(soundCoin); // Use coin sound for power-up collection
+            scene.remove(p);
+            powerUpObjects[index] = null;
+        }
+        // Power-up rotation
+        p.rotation.z += 0.05;
+      });
+      
+      // --- COINS COLLECTION ---
+      coinObjects.forEach((c, index)=>{
+        if(!c) return;
+        
+        // Recycle coin
+        if(c.position.z > marble.position.z + 6){
+          c.position.z -= 180;
+          c.position.x = (Math.random()*4)-2;
+        }
+
+        let isCollected = false;
+        
+        // Magnet effect: pull coin towards marble
+        if (isMagnetActive) {
+            const distanceVec = new THREE.Vector3().subVectors(marble.position, c.position);
+            if (distanceVec.lengthSq() < 25) { // Radius of 5 units for magnet pull
+                c.position.add(distanceVec.normalize().multiplyScalar(0.1));
+            }
+        }
+
+        // Collection check (normal and magnet)
+        if(Math.abs(c.position.z - marble.position.z)<1 && Math.abs(c.position.x - marble.position.x)<0.8){
+            isCollected = true;
+        }
+
+        if (isCollected) {
+            coins++;
+            document.getElementById('coins').innerText = coins;
+            playSound(soundCoin); 
+            triggerCoinEffect(c.position); // Trigger particle effect
+            scene.remove(c);
+            coinObjects[index] = null;
+        }
+      });
+      
+
+      // --- PARTICLE UPDATE ---
+      coinParticles.children.forEach((p, index) => {
+          if (p.lifetime <= 0) {
+              coinParticles.remove(p);
+              return;
+          }
+          p.position.add(p.velocity);
+          p.velocity.y -= 0.01; // Gravity effect
+          p.lifetime--;
+      });
+
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // =====================
+    // RESIZE
+    // =====================
+    window.addEventListener('resize',()=>{
+      camera.aspect = window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
